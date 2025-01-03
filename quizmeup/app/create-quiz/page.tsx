@@ -17,6 +17,7 @@ export default function CreateQuiz() {
   const [error, setError] = useState<string | null>(null)
   const [editingQuestion, setEditingQuestion] = useState<number | null>(null)
   const [savedQuizzes, setSavedQuizzes] = useState<string[]>([])
+  const [timeLimit, setTimeLimit] = useState(30) // Added timeLimit state
 
   useEffect(() => {
     const quizzes = Object.keys(localStorage).filter(key => key.startsWith('saved_quiz_'))
@@ -103,6 +104,7 @@ export default function CreateQuiz() {
         }],
         gpt_calls_used: 0,
         embedding_calls_used: 0,
+        timeLimit: timeLimit, // Use the state variable for timeLimit
       });
       setEditingQuestion(0);
     }
@@ -159,7 +161,9 @@ export default function CreateQuiz() {
 
   const saveAndContinue = () => {
     if (quizData) {
-      router.push(`/host-lobby?quizId=${encodeURIComponent(quizData.topic)}`)
+      const quizName = quizData.topic || 'Untitled Quiz'
+      localStorage.setItem(`saved_quiz_${quizName}`, JSON.stringify(quizData))
+      router.push(`/host-lobby?quizId=${encodeURIComponent(quizName)}`)
     }
   }
 

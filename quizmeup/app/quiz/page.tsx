@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Timer } from 'lucide-react'
 import Link from 'next/link'
@@ -13,6 +13,29 @@ export default function Quiz() {
   const [timeLeft, setTimeLeft] = useState(30)
   const [responses, setResponses] = useState<{[key: number]: { answer: string, isCorrect: boolean }}>({})
   const [isHost, setIsHost] = useState(false)
+
+  const calculateResults = useCallback(() => {
+    if (!quizData) return { score: 0, totalQuestions: 0, responses: {} }
+    
+    const correctAnswers = Object.values(responses).filter(r => r.isCorrect).length;
+
+    return {
+      score: correctAnswers,
+      totalQuestions: quizData.questions.length,
+      responses
+    }
+  }, [quizData, responses]);
+
+  const nextQuestion = useCallback(() => {
+    if (quizData && currentQuestionIndex < quizData.questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1)
+      setTimeLeft(quizData.timeLimit || 30)
+    } else {
+      const results = calculateResults()
+      localStorage.setItem('quizResults', JSON.stringify(results))
+      router.push('/results')
+    }
+  }, [quizData, currentQuestionIndex, calculateResults, router])
 
   useEffect(() => {
     const storedQuiz = localStorage.getItem('currentQuiz')
@@ -40,18 +63,7 @@ export default function Quiz() {
 
       return () => clearInterval(timer)
     }
-  }, [currentQuestionIndex, quizData])
-
-  const nextQuestion = () => {
-    if (quizData && currentQuestionIndex < quizData.questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1)
-      setTimeLeft(quizData.timeLimit || 30)
-    } else {
-      const results = calculateResults()
-      localStorage.setItem('quizResults', JSON.stringify(results))
-      router.push('/results')
-    }
-  }
+  }, [currentQuestionIndex, quizData, nextQuestion])
 
   const handleAnswerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const answer = e.target.value;
@@ -64,17 +76,6 @@ export default function Quiz() {
     }))
   }
 
-  const calculateResults = () => {
-    if (!quizData) return { score: 0, totalQuestions: 0, responses: {} }
-    
-    const correctAnswers = Object.values(responses).filter(r => r.isCorrect).length;
-
-    return {
-      score: correctAnswers,
-      totalQuestions: quizData.questions.length,
-      responses
-    }
-  }
 
   if (!quizData) {
     return <div>Loading...</div>

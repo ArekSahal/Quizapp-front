@@ -18,25 +18,28 @@ export default function HostQuiz() {
     const storedParticipants = localStorage.getItem('quizParticipants')
     if (storedQuiz) {
       setQuizData(JSON.parse(storedQuiz))
+    } else {
+      router.push('/create-quiz')
     }
     if (storedParticipants) {
       setParticipants(JSON.parse(storedParticipants))
     }
-  }, [])
+  }, [router])
 
   useEffect(() => {
-    // Simulating participants answering (replace with actual backend logic)
-    const interval = setInterval(() => {
-      setAnsweredCount(prev => {
-        const newCount = Math.min(prev + 1, participants.length)
-        if (newCount === participants.length) {
-          clearInterval(interval)
-        }
-        return newCount
-      })
-    }, 2000)
+    if (participants.length > 0) {
+      const interval = setInterval(() => {
+        setAnsweredCount(prev => {
+          const newCount = Math.min(prev + 1, participants.length)
+          if (newCount === participants.length) {
+            clearInterval(interval)
+          }
+          return newCount
+        })
+      }, 2000)
 
-    return () => clearInterval(interval)
+      return () => clearInterval(interval)
+    }
   }, [participants.length])
 
   const nextQuestion = () => {
@@ -49,7 +52,7 @@ export default function HostQuiz() {
   }
 
   if (!quizData) {
-    return <div>Loading...</div>
+    return <div className="text-center text-pink-700 mt-8">Loading quiz data...</div>
   }
 
   const currentQuestion = quizData.questions[currentQuestionIndex]

@@ -4,35 +4,31 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ArrowLeft, Play, Users, Copy } from 'lucide-react'
 import Link from 'next/link'
-import { QuizData } from '../types/quiz'
+import { QuizData } from '@/app/types/quiz'
 
-export default function HostLobby() {
+export default function LobbyContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const quizId = searchParams.get('quizId')
   const [lobbyCode, setLobbyCode] = useState('')
   const [participants, setParticipants] = useState<string[]>([])
   const [quizData, setQuizData] = useState<QuizData | null>(null)
-  const [timeLimit, setTimeLimit] = useState(0); // Added state for time limit
+  const [timeLimit, setTimeLimit] = useState(30)
 
   useEffect(() => {
     if (quizId) {
       const storedQuiz = localStorage.getItem(`saved_quiz_${quizId}`)
       if (storedQuiz) {
         setQuizData(JSON.parse(storedQuiz))
-        setTimeLimit(JSON.parse(storedQuiz).timeLimit) //Added to get timeLimit from local storage
+        setTimeLimit(JSON.parse(storedQuiz).timeLimit)
       } else {
         router.push('/create-quiz')
       }
     }
     setLobbyCode(Math.random().toString(36).substring(2, 8).toUpperCase())
 
-    // Simulating participants joining (replace with actual backend logic)
-    const interval = setInterval(() => {
-      setParticipants(prev => [...prev, `Participant ${prev.length + 1}`])
-    }, 5000)
-
-    return () => clearInterval(interval)
+    // Automatically add 5 participants
+    setParticipants(['Participant 1', 'Participant 2', 'Participant 3', 'Participant 4', 'Participant 5'])
   }, [quizId, router])
 
   const copyLobbyCode = () => {
@@ -54,7 +50,7 @@ export default function HostLobby() {
         <Link href="/create-quiz" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-md hover:bg-gray-50 transition-all duration-300 ease-in-out">
           <ArrowLeft className="w-6 h-6 text-pink-500" />
         </Link>
-        <h1 className="text-3xl font-bold text-pink-700 ml-4">Host Lobby</h1>
+        <h1 className="text-3xl font-bold text-pink-700 ml-4">Quiz Lobby</h1>
       </div>
 
       <div className="card mb-8">
@@ -99,7 +95,7 @@ export default function HostLobby() {
         disabled={participants.length === 0}
       >
         <Play className="w-5 h-5 mr-2" />
-        Start Hosting Quiz
+        Start Quiz
       </button>
     </div>
   )
